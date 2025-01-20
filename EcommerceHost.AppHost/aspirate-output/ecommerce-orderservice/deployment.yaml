@@ -1,0 +1,35 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ecommerce-orderservice
+  labels:
+    app: ecommerce-orderservice
+spec:
+  minReadySeconds: 60
+  replicas: 1
+  selector:
+    matchLabels:
+      app: ecommerce-orderservice
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        app: ecommerce-orderservice
+    spec:
+      containers:
+      - name: ecommerce-orderservice
+        image: sanibesiru/ecommerce-orderservice:latest
+        imagePullPolicy: Never
+        ports:
+        - name: http
+          containerPort: 8080
+        - name: https
+          containerPort: 8443
+        envFrom:
+        - configMapRef:
+            name: ecommerce-orderservice-env
+        - secretRef:
+            name: ecommerce-orderservice-secrets
+      terminationGracePeriodSeconds: 180

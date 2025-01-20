@@ -1,0 +1,40 @@
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: postgres28th
+  labels:
+    app: postgres28th
+spec:
+  serviceName: "postgres28th"
+  replicas: 1
+  selector:
+    matchLabels:
+      app: postgres28th
+  template:
+    metadata:
+      labels:
+        app: postgres28th
+    spec:
+      containers:
+        - name: postgres28th
+          image: docker.io/library/postgres:17.0
+          imagePullPolicy: Never
+          ports:
+            - containerPort: 5432
+          envFrom:
+            - configMapRef:
+                name: postgres28th-env
+            - secretRef:
+                name: postgres28th-secrets
+          volumeMounts:
+            - name: ecommercehost-apphost-postgres28th-data
+              mountPath: /var/lib/postgresql/data
+  volumeClaimTemplates:
+    - metadata:
+        name: ecommercehost-apphost-postgres28th-data
+      spec:
+        accessModes: ["ReadWriteOnce"]
+        resources:
+          requests:
+            storage: 1Gi

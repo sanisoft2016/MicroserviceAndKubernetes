@@ -1,0 +1,64 @@
+﻿@page "/orders"
+@inject NavigationManager Navigation
+@using Ecommerce.Model
+@inject HttpClient http
+
+<h3>OrderList</h3>
+
+<div class="row">
+    <div class="col-md-6">
+        <div class="card">
+            <table class="table">
+                <thead>
+                    <tr>
+                        <td>Customer Name</td>
+                        <td>Procduct Id</td>
+                        <td>Quantity</td>
+                        <td>Order Date</td>
+                    </tr>
+                </thead>
+
+                <tbody>
+                    @foreach (var order in orders)
+                    {
+                        <tr>
+                            <td> @order.CustomerName</td>
+                            <td> @order.ProductId</td>
+                            <td>@order.Quantity</td>
+                            <td>@order.OrderDate</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+</div>
+<h3>OrderList</h3>
+
+@code {
+    private List<OrderModel> orders = new List<OrderModel>();
+
+    // protected override async Task OnInitializedAsync()
+    // {
+    //     orders = await http.GetFromJsonAsync<List<OrderModel>>("https:localhost:7087/api/order/list");
+    //     await base.OnInitializedAsync();
+    // }
+
+    protected override async Task OnInitializedAsync()
+    {
+        // var uri = new Uri(Navigation.Uri);
+        // var domain = uri.Host;
+        // var port = uri.Port.ToString();
+        // var baseUrl = "http:" + domain;
+        // orders = await http.GetFromJsonAsync<List<OrderModel>>($"{baseUrl}/api/order/list");
+        // orders = await http.GetFromJsonAsync<List<OrderModel>>("https:localhost:7087/api/order/list");
+
+
+        var ordersResponse = await http.GetAsync("http://ecommerce-orderservice.default.svc.cluster.local/api/order/list");
+        ordersResponse.EnsureSuccessStatusCode();
+        orders = await ordersResponse.Content.ReadFromJsonAsync<List<OrderModel>>() ?? new List<OrderModel>();
+
+        await base.OnInitializedAsync();
+    }
+}

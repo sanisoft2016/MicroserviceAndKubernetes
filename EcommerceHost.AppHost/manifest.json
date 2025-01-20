@@ -1,0 +1,155 @@
+{
+  "$schema": "https://json.schemastore.org/aspire-8.0.json",
+  "resources": {
+    "myKafkaConnection": {
+      "type": "container.v0",
+      "connectionString": "{myKafkaConnection.bindings.tcp.host}:{myKafkaConnection.bindings.tcp.port}",
+      "image": "docker.io/confluentinc/confluent-local:7.7.1",
+      "env": {
+        "KAFKA_LISTENERS": "PLAINTEXT://localhost:29092,CONTROLLER://localhost:29093,PLAINTEXT_HOST://0.0.0.0:9092,PLAINTEXT_INTERNAL://0.0.0.0:9093",
+        "KAFKA_LISTENER_SECURITY_PROTOCOL_MAP": "CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT,PLAINTEXT_INTERNAL:PLAINTEXT",
+        "KAFKA_ADVERTISED_LISTENERS": "PLAINTEXT://{myKafkaConnection.bindings.tcp.host}:29092,PLAINTEXT_HOST://{myKafkaConnection.bindings.tcp.host}:{myKafkaConnection.bindings.tcp.port},PLAINTEXT_INTERNAL://{myKafkaConnection.bindings.internal.host}:{myKafkaConnection.bindings.internal.port}"
+      },
+      "bindings": {
+        "tcp": {
+          "scheme": "tcp",
+          "protocol": "tcp",
+          "transport": "tcp",
+          "targetPort": 9092
+        },
+        "internal": {
+          "scheme": "tcp",
+          "protocol": "tcp",
+          "transport": "tcp",
+          "targetPort": 9093
+        }
+      }
+    },
+    "postgres28th": {
+      "type": "container.v0",
+      "connectionString": "Host={postgres28th.bindings.tcp.host};Port={postgres28th.bindings.tcp.port};Username=postgres;Password={postgres28th-password.value}",
+      "image": "docker.io/library/postgres:17.0",
+      "volumes": [
+        {
+          "name": "EcommerceHost.AppHost-postgres28th-data",
+          "target": "/var/lib/postgresql/data",
+          "readOnly": false
+        }
+      ],
+      "env": {
+        "POSTGRES_HOST_AUTH_METHOD": "scram-sha-256",
+        "POSTGRES_INITDB_ARGS": "--auth-host=scram-sha-256 --auth-local=scram-sha-256",
+        "POSTGRES_USER": "postgres",
+        "POSTGRES_PASSWORD": "{postgres28th-password.value}"
+      },
+      "bindings": {
+        "tcp": {
+          "scheme": "tcp",
+          "protocol": "tcp",
+          "transport": "tcp",
+          "targetPort": 5432
+        }
+      }
+    },
+    "MicroServiceOrderDb": {
+      "type": "value.v0",
+      "connectionString": "{postgres28th.connectionString};Database=MicroServiceOrderDb"
+    },
+    "ecommerce-orderservice": {
+      "type": "project.v0",
+      "path": "../Ecommerce.OrderService/Ecommerce.OrderService.csproj",
+      "env": {
+        "OTEL_DOTNET_EXPERIMENTAL_OTLP_EMIT_EXCEPTION_LOG_ATTRIBUTES": "true",
+        "OTEL_DOTNET_EXPERIMENTAL_OTLP_EMIT_EVENT_LOG_ATTRIBUTES": "true",
+        "OTEL_DOTNET_EXPERIMENTAL_OTLP_RETRY": "in_memory",
+        "ASPNETCORE_FORWARDEDHEADERS_ENABLED": "true",
+        "HTTP_PORTS": "{ecommerce-orderservice.bindings.http.targetPort}",
+        "ConnectionStrings__myKafkaConnection": "{myKafkaConnection.connectionString}",
+        "ConnectionStrings__MicroServiceOrderDb": "{MicroServiceOrderDb.connectionString}"
+      },
+      "bindings": {
+        "http": {
+          "scheme": "http",
+          "protocol": "tcp",
+          "transport": "http"
+        },
+        "https": {
+          "scheme": "https",
+          "protocol": "tcp",
+          "transport": "http"
+        }
+      }
+    },
+    "MicroServiceProductDb": {
+      "type": "value.v0",
+      "connectionString": "{postgres28th.connectionString};Database=MicroServiceProductDb"
+    },
+    "ecommerce-productservice": {
+      "type": "project.v0",
+      "path": "../Ecommerce.ProductService/Ecommerce.ProductService.csproj",
+      "env": {
+        "OTEL_DOTNET_EXPERIMENTAL_OTLP_EMIT_EXCEPTION_LOG_ATTRIBUTES": "true",
+        "OTEL_DOTNET_EXPERIMENTAL_OTLP_EMIT_EVENT_LOG_ATTRIBUTES": "true",
+        "OTEL_DOTNET_EXPERIMENTAL_OTLP_RETRY": "in_memory",
+        "ASPNETCORE_FORWARDEDHEADERS_ENABLED": "true",
+        "HTTP_PORTS": "{ecommerce-productservice.bindings.http.targetPort}",
+        "ConnectionStrings__myKafkaConnection": "{myKafkaConnection.connectionString}",
+        "ConnectionStrings__MicroServiceProductDb": "{MicroServiceProductDb.connectionString}"
+      },
+      "bindings": {
+        "http": {
+          "scheme": "http",
+          "protocol": "tcp",
+          "transport": "http"
+        },
+        "https": {
+          "scheme": "https",
+          "protocol": "tcp",
+          "transport": "http"
+        }
+      }
+    },
+    "ecommerce-web": {
+      "type": "project.v0",
+      "path": "../Ecommerce.Web/Ecommerce.Web.csproj",
+      "env": {
+        "OTEL_DOTNET_EXPERIMENTAL_OTLP_EMIT_EXCEPTION_LOG_ATTRIBUTES": "true",
+        "OTEL_DOTNET_EXPERIMENTAL_OTLP_EMIT_EVENT_LOG_ATTRIBUTES": "true",
+        "OTEL_DOTNET_EXPERIMENTAL_OTLP_RETRY": "in_memory",
+        "ASPNETCORE_FORWARDEDHEADERS_ENABLED": "true",
+        "HTTP_PORTS": "{ecommerce-web.bindings.http.targetPort}",
+        "services__ecommerce-orderservice__http__0": "{ecommerce-orderservice.bindings.http.url}",
+        "services__ecommerce-orderservice__https__0": "{ecommerce-orderservice.bindings.https.url}",
+        "services__ecommerce-productservice__http__0": "{ecommerce-productservice.bindings.http.url}",
+        "services__ecommerce-productservice__https__0": "{ecommerce-productservice.bindings.https.url}"
+      },
+      "bindings": {
+        "http": {
+          "scheme": "http",
+          "protocol": "tcp",
+          "transport": "http"
+        },
+        "https": {
+          "scheme": "https",
+          "protocol": "tcp",
+          "transport": "http"
+        }
+      }
+    },
+    "postgres28th-password": {
+      "type": "parameter.v0",
+      "value": "{postgres28th-password.inputs.value}",
+      "inputs": {
+        "value": {
+          "type": "string",
+          "secret": true,
+          "default": {
+            "generate": {
+              "minLength": 22
+            }
+          }
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,79 @@
+﻿@page "/cart/{productId:int}";
+@using Ecommerce.Model
+@inject HttpClient http
+@rendermode InteractiveServer
+@inject IJSRuntime jsRuntime
+@inject NavigationManager Navigation
+
+
+<h3>Cart</h3>
+
+<form>
+    <div class="form-group mb-4">
+        <label>Customer Name</label>
+        <input type="text" class="form-control" @bind="order.CustomerName" />
+    </div>
+
+    <div class="form-group mb-4">
+        <label>Product Name</label>
+        <input type="text" class="form-control" @bind="product.Name" />
+    </div>
+
+    <div class="form-group mb-4">
+        <label>Quantity</label>
+        <input type="text" class="form-control" @bind="order.Quantity" />
+
+        <input type="text" class="form-control" @bind="order.ProductId" hidden />
+    </div>
+    <button type="button" class="btn btn-primary" @onclick="Createorder">Create Order </button>
+</form>
+<div class="card">
+    <div class="card-body">
+        <p role="status" style="font-weight:800; color:green"> @responseMsg</p>
+    </div>
+</div>
+
+@code {
+    [Parameter]
+    public int productId { set; get; }
+    public OrderModel order = new OrderModel();
+    public ProductModel product = new ProductModel();
+
+    //private IJSObjectReference module;
+    private string domain;
+    private string port;
+
+    private string responseMsg = "";
+
+
+    protected override void OnInitialized()
+    {
+        var uri = new Uri(Navigation.Uri);
+        domain = uri.Host;
+        port = uri.Port.ToString();
+    }
+
+    protected override async Task OnParametersSetAsync()
+    {
+        // var baseUrl = "http:" + domain;       
+        // product = await http.GetFromJsonAsync<ProductModel>($"{baseUrl}/api/product/{productId}");
+        order.ProductId = productId;
+        var productsResponse = await http.GetAsync($"http://ecommerce-productservice.default.svc.cluster.local/api/product/{productId}");
+        productsResponse.EnsureSuccessStatusCode();
+        product = await productsResponse.Content.ReadFromJsonAsync<ProductModel>() ?? new ProductModel();
+    }
+    public async Task Createorder()
+    {
+        // var requestUri = "http:" + domain;
+        // 
+        // var response = await http.PostAsJsonAsync<OrderModel>($"{requestUri}/api/Order/CreateOrder", order);
+
+        order.OrderDate = DateTime.Now;
+        var response = await http.PostAsJsonAsync<OrderModel>($"http://ecommerce-orderservice.default.svc.cluster.local/api/order/CreateOrder", order);
+        if (response.IsSuccessStatusCode)
+        {
+            responseMsg = "Your Order has successfully been created!";
+        }
+    }
+
+}

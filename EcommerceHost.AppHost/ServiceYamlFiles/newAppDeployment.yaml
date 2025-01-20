@@ -1,0 +1,144 @@
+﻿apiVersion: v1
+kind: Namespace
+metadata:
+  name: ecommerce
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ecommerce-web
+  namespace: ecommerce
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: ecommerce-web
+  template:
+    metadata:
+      labels:
+        app: ecommerce-web
+    spec:
+      containers:
+      - name: ecommerce-web
+        image: your-dockerhub-repo/ecommerce-web:latest
+        ports:
+        - containerPort: 80
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: ecommerce-web
+  namespace: ecommerce
+spec:
+  selector:
+    app: ecommerce-web
+  ports:
+  - protocol: TCP
+    port: 80
+    targetPort: 80
+  type: ClusterIP
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ecommerce-orderservice
+  namespace: ecommerce
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: ecommerce-orderservice
+  template:
+    metadata:
+      labels:
+        app: ecommerce-orderservice
+    spec:
+      containers:
+      - name: ecommerce-orderservice
+        image: your-dockerhub-repo/ecommerce-orderservice:latest
+        ports:
+        - containerPort: 8080
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: ecommerce-orderservice
+  namespace: ecommerce
+spec:
+  selector:
+    app: ecommerce-orderservice
+  ports:
+  - protocol: TCP
+    port: 8080
+    targetPort: 8080
+  type: ClusterIP
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ecommerce-productservice
+  namespace: ecommerce
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: ecommerce-productservice
+  template:
+    metadata:
+      labels:
+        app: ecommerce-productservice
+    spec:
+      containers:
+      - name: ecommerce-productservice
+        image: your-dockerhub-repo/ecommerce-productservice:latest
+        ports:
+        - containerPort: 8080
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: ecommerce-productservice
+  namespace: ecommerce
+spec:
+  selector:
+    app: ecommerce-productservice
+  ports:
+  - protocol: TCP
+    port: 8080
+    targetPort: 8080
+  type: ClusterIP
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: ecommerce-ingress
+  namespace: ecommerce
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /
+    nginx.ingress.kubernetes.io/ssl-redirect: "false"
+spec:
+  rules:
+  - host: ecommerce.local
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: ecommerce-web
+            port:
+              number: 80
+      - path: /orderservice
+        pathType: Prefix
+        backend:
+          service:
+            name: ecommerce-orderservice
+            port:
+              number: 8080
+      - path: /productservice
+        pathType: Prefix
+        backend:
+          service:
+            name: ecommerce-productservice
+            port:
+              number: 8080

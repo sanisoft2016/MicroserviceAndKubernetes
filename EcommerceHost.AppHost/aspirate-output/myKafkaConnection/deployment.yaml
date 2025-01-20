@@ -1,0 +1,33 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mykafkaconnection
+  labels:
+    app: mykafkaconnection
+spec:
+  minReadySeconds: 60
+  replicas: 1
+  selector:
+    matchLabels:
+      app: mykafkaconnection
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        app: mykafkaconnection
+    spec:
+      containers:
+      - name: mykafkaconnection
+        image: docker.io/confluentinc/confluent-local:7.7.1
+        imagePullPolicy: Never
+        ports:
+        - name: tcp
+          containerPort: 9092
+        - name: internal
+          containerPort: 9093
+        envFrom:
+        - configMapRef:
+            name: mykafkaconnection-env
+      terminationGracePeriodSeconds: 180

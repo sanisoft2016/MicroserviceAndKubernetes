@@ -1,0 +1,35 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ecommerce-productservice
+  labels:
+    app: ecommerce-productservice
+spec:
+  minReadySeconds: 60
+  replicas: 1
+  selector:
+    matchLabels:
+      app: ecommerce-productservice
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        app: ecommerce-productservice
+    spec:
+      containers:
+      - name: ecommerce-productservice
+        image: sanibesiru/ecommerce-productservice:latest
+        imagePullPolicy: Never
+        ports:
+        - name: http
+          containerPort: 8080
+        - name: https
+          containerPort: 8443
+        envFrom:
+        - configMapRef:
+            name: ecommerce-productservice-env
+        - secretRef:
+            name: ecommerce-productservice-secrets
+      terminationGracePeriodSeconds: 180

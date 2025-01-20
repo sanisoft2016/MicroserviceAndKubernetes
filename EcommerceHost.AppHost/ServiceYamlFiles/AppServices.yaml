@@ -1,0 +1,383 @@
+﻿---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ecommerce-web
+  labels:
+    app: ecommerce-web
+spec:
+  minReadySeconds: 60    
+  replicas: 1
+  selector:
+    matchLabels:
+      app: ecommerce-web
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        app: ecommerce-web
+    spec:
+      containers:
+      - name: ecommerce-web
+        image: sanibesiru/ecommerce-web:latest
+        imagePullPolicy: Never
+        ports:
+        - containerPort: 80
+        envFrom:
+        - configMapRef:
+            name: ecommerce-web-env
+      terminationGracePeriodSeconds: 180
+  
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: ecommerce-web
+spec:
+  selector:
+    app: ecommerce-web
+  ports:
+  - protocol: TCP
+    port: 80
+    targetPort: 80
+  type: NodePort
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ecommerce-orderservice
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: ecommerce-orderservice
+  template:
+    metadata:
+      labels:
+        app: ecommerce-orderservice
+    spec:
+      containers:
+      - name: ecommerce-orderservice
+        image: sanibesiru/ecommerce-orderservice:latest
+        imagePullPolicy: Never
+        ports:
+        - containerPort: 5000
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: ecommerce-orderservice
+spec:
+  selector:
+    app: ecommerce-orderservice
+  ports:
+  - protocol: TCP
+    port: 5000
+    targetPort: 5000
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ecommerce-productservice
+  labels:
+    app: ecommerce-productservice
+spec:
+  minReadySeconds: 60    
+  replicas: 1
+  selector:
+    matchLabels:
+      app: ecommerce-productservice
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        app: ecommerce-productservice
+    spec:
+      containers:
+      - name: ecommerce-productservice
+        image: sanibesiru/ecommerce-productservice:latest
+        imagePullPolicy: Never
+        ports:
+        - containerPort: 5000
+        envFrom:
+        - configMapRef:
+            name: ecommerce-productservice-env
+        - secretRef:
+            name: ecommerce-productservice-secrets
+      terminationGracePeriodSeconds: 180
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: ecommerce-productservice
+spec:
+  selector:
+    app: ecommerce-productservice
+  ports:
+  - protocol: TCP
+    port: 5000
+    targetPort: 5000
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: ecommerce-ingress
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /
+spec:
+  rules:
+  - host: localhost
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: ecommerce-web
+            port:
+              number: 80
+      - path: /orderservice
+        pathType: Prefix
+        backend:
+          service:
+            name: ecommerce-orderservice
+            port:
+              number: 5000
+      - path: /productservice
+        pathType: Prefix
+        backend:
+          service:
+            name: ecommerce-productservice
+            port:
+              number: 5000
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ecommerce-web
+  labels:
+    app: ecommerce-web
+spec:
+  minReadySeconds: 60
+  replicas: 1
+  selector:
+    matchLabels:
+      app: ecommerce-web
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        app: ecommerce-web
+    spec:
+      containers:
+      - name: ecommerce-web
+        image: sanibesiru/ecommerce-web:latest
+        imagePullPolicy: Never
+        ports:
+        - name: http
+          containerPort: 8080
+        - name: https
+          containerPort: 8443
+
+      #--------------
+        env:
+        - name: ASPNETCORE_URLS
+          value: http://*:8080
+        - name: orderserviceEndpoint
+          value: http://ecommerce-orderservice
+
+        - name: productserviceEndpoint
+          value: http://ecommerce-productservice
+
+      #--------------
+        
+      envFrom:
+        - configMapRef:
+            name: ecommerce-web-env
+      terminationGracePeriodSeconds: 180
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: ecommerce-web
+spec:
+  type: NodePort
+  ports:
+  - port: 8080
+    targetPort: 8080
+    nodePort: 32000
+  selector:
+    app: ecommerce-web
+
+
+
+#----------------------------------------------------------------
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ecommerce-orderservice
+  labels:
+    app: ecommerce-orderservice
+spec:
+  minReadySeconds: 60
+  replicas: 1
+  selector:
+    matchLabels:
+      app: ecommerce-orderservice
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        app: ecommerce-orderservice
+    spec:
+      containers:
+      - name: ecommerce-orderservice
+        image: sanibesiru/ecommerce-orderservice:latest
+        imagePullPolicy: Never
+        ports:
+        - name: http
+          containerPort: 8080
+        - name: https
+          containerPort: 8443
+
+
+          #---------------------
+          env:
+        - name: ASPNETCORE_URLS
+          value: http://*:80
+          #----------------------
+
+
+        envFrom:
+        - configMapRef:
+            name: ecommerce-orderservice-env
+        - secretRef:
+            name: ecommerce-orderservice-secrets
+      terminationGracePeriodSeconds: 180
+
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: ecommerce-orderservice
+spec:
+  type: NodePort
+  ports:
+  - port: 8080
+    targetPort: 8080
+    nodePort: 32001
+  selector:
+    app: ecommerce-orderservice
+
+
+#-----------------------------------------------------------------------------------------
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ecommerce-productservice
+  labels:
+    app: ecommerce-productservice
+spec:
+  minReadySeconds: 60
+  replicas: 1
+  selector:
+    matchLabels:
+      app: ecommerce-productservice
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        app: ecommerce-productservice
+    spec:
+      containers:
+      - name: ecommerce-productservice
+        image: sanibesiru/ecommerce-productservice:latest
+        imagePullPolicy: Never
+        ports:
+        - name: http
+          containerPort: 8080
+        - name: https
+          containerPort: 8443
+
+        
+      #---------------------
+          env:
+        - name: ASPNETCORE_URLS
+          value: http://*:80
+      #----------------------
+
+        envFrom:
+        - configMapRef:
+            name: ecommerce-productservice-env
+        - secretRef:
+            name: ecommerce-productservice-secrets
+      terminationGracePeriodSeconds: 180
+
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: ecommerce-productservice
+spec:
+  type: NodePort
+  ports:
+  - port: 8080
+    targetPort: 8080
+    nodePort: 32002
+  selector:
+    app: ecommerce-productservice

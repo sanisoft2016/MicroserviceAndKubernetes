@@ -1,0 +1,12 @@
+resources:
+- myKafkaConnection
+- postgres28th
+- ecommerce-orderservice
+- ecommerce-productservice
+- ecommerce-web
+- dashboard.yaml
+
+generatorOptions:
+  disableNameSuffixHash: true
+
+

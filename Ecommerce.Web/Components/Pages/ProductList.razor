@@ -1,0 +1,65 @@
+﻿
+@page "/products";
+@using Ecommerce.Model
+@inject HttpClient http
+@inject NavigationManager Navigation
+
+<h3>ProductList</h3>
+
+<div class="row">
+    @foreach (var product in products)
+    {
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-body">
+
+                    <h5 class="card-title">Product: @product.Name</h5>
+                    <p class="card-text">Price: @product.Price</p>
+                    <p class="card-text">Quantity: @product.Quantity</p>
+                    <a href="/cart/@product.Id" class="btn btn-primary">Buy</a>
+
+                </div>
+            </div>
+        </div>
+
+    }
+</div>
+
+@code {
+    private List<ProductModel> products = new List<ProductModel>();
+    private bool isLoading = true;
+    private string? errorMessage = null;
+    // private List<string> Orders = new();
+    // private List<string> Products = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            var productsResponse = await http.GetAsync("http://ecommerce-productservice.default.svc.cluster.local/api/product/list");
+            productsResponse.EnsureSuccessStatusCode();
+            products = await productsResponse.Content.ReadFromJsonAsync<List<ProductModel>>() ?? new List<ProductModel>();
+            await base.OnInitializedAsync();
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Failed to load data: {ex.Message}";
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    // protected override async Task OnInitializedAsync()
+    // {
+    //     var uri = new Uri(Navigation.Uri);
+    //     var domain = uri.Host;
+    //     var port = uri.Port.ToString();
+    //     var baseUrl = "http:" + domain + "/";
+    //     var productsResponse = await http.GetFromJsonAsync<List<ProductModel>>($"{baseUrl}api/product/list");
+    //     var productsResponse = await http.GetFromJsonAsync<List<ProductModel>>("https:localhost:7063/api/product/list");
+    //     products = productsResponse;
+    //     await base.OnInitializedAsync();
+    // }
+}

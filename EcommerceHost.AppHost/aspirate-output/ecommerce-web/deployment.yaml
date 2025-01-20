@@ -1,0 +1,33 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ecommerce-web
+  labels:
+    app: ecommerce-web
+spec:
+  minReadySeconds: 60
+  replicas: 1
+  selector:
+    matchLabels:
+      app: ecommerce-web
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        app: ecommerce-web
+    spec:
+      containers:
+      - name: ecommerce-web
+        image: sanibesiru/ecommerce-web:latest
+        imagePullPolicy: Never
+        ports:
+        - name: http
+          containerPort: 8080
+        - name: https
+          containerPort: 8443
+        envFrom:
+        - configMapRef:
+            name: ecommerce-web-env
+      terminationGracePeriodSeconds: 180

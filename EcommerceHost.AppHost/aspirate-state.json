@@ -1,0 +1,42 @@
+{
+  "projectPath": ".",
+  "inputPath": "aspirate-output",
+  "outputPath": "aspirate-output",
+  "containerImageTags": [
+    "latest"
+  ],
+  "imagePullPolicy": "Never",
+  "containerBuilder": "docker",
+  "containerRepositoryPrefix": "sanibesiru",
+  "kubeContext": "minikube",
+  "outputFormat": "kustomize",
+  "skipFinalKustomizeGeneration": false,
+  "privateRegistryEmail": "aspir8@aka.ms",
+  "includeDashboard": true,
+  "useCustomNamespace": false,
+  "secrets": {
+    "salt": "nFjedjzLfPBbwrLj",
+    "hash": "sr4GBr82VfLSpyk73Dl5wsYaKT7iwLW0pc\u002BYB86capw=",
+    "secrets": {
+      "postgres28th-password": {
+        "value": "nFjedjzLfPBbwrLjg3iofQGhLnc0WaOb0m1G42CzzaDoHI2r/1hKHTyKSA30pEcIpYo="
+      },
+      "myKafkaConnection": {},
+      "postgres28th": {
+        "POSTGRES_PASSWORD": "nFjedjzLfPBbwrLjg3iofQGhLnc0WaOb0m1G42CzzaDoHI2r/1hKHTyKSA30pEcIpYo="
+      },
+      "MicroServiceOrderDb": {},
+      "ecommerce-orderservice": {
+        "ConnectionStrings__myKafkaConnection": "nFjedjzLfPBbwrLj9JFvbpWUFJqzyfakiS0nj2GlybPnQaDJ5ExFMjq1czvrzR9UyPQ=",
+        "ConnectionStrings__MicroServiceOrderDb": "nFjedjzLfPBbwrLjVQNhKyEb5TQl0a4P6rrJL0Sz8aa8Wq75/0VZMirzIiDtzHYLg7IHdScQrUS\u002Bdx5Ig0io6xYbKjvSlShr7O4gDiQUe\u002BcP\u002BVZ3GmKPgOKyxHnwbjHOh8MaWUVPdiua32n//IgD5kVHj9XDyJz0lS\u002Bw2raFhxtbsAR/T9k="
+      },
+      "MicroServiceProductDb": {},
+      "ecommerce-productservice": {
+        "ConnectionStrings__myKafkaConnection": "nFjedjzLfPBbwrLj9JFvbpWUFJqzyfakiS0nj2GlybPnQaDJ5ExFMjq1czvrzR9UyPQ=",
+        "ConnectionStrings__MicroServiceProductDb": "nFjedjzLfPBbwrLjyA/HyUJovMdDtGbhic4QA0Sz8aa8Wq75/0VZMirzIiDtzHYLg7IHdScQrUS\u002Bdx5Ig0io6xYbKjvSlShr7O4gDiQUe\u002BcP\u002BVZ3GmKPgOKyxHnwbjHOh8MaWUVPdiua32n//IgD5kVHj9XDyJz0lS\u002Bw2raFhwRbuwV4aM8vUA=="
+      },
+      "ecommerce-web": {}
+    }
+  },
+  "processAllComponents": true
+}
